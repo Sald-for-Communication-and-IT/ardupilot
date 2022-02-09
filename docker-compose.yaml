@@ -1,0 +1,44 @@
+version: "3.8"
+services:
+  ##############################################################
+  ## Docker ardupilot sitl
+  ## Maintainer: Chirag Makwana
+  ## command: export HOSTIP=$(hostname -I|cut -f1 -d ' ')
+  ##          xhost + $HOSTIP
+  ##
+  ##          rm .env
+  ##          {
+  ##                  echo 'UID='$(id -u)
+  ##                  echo 'GID='$(id -g)
+  ##                  echo 'HOST_IP='$(hostname -I|cut -f1 -d ' ')
+  ##          } >> .env
+  ##          cat .env
+  ##          docker-compose --env-file .env up --build ardupilot
+  ##
+  ## Args:  - <SAMPLE_ARG_KEY>=<value>
+  ##############################################################
+  ardupilot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: zsitl 
+    stdin_open: true
+    tty: true
+    user: ardupilot
+    network_mode: "host"
+    environment:
+      - HOST_IP=${HOST_IP}
+      - PARAM_FILE=${PARAM_FILE}
+      - PARAM_DIR=${PARAM_DIR}
+      - GROUNDCTRL_IP=${GROUNDCTRL_IP}
+      - UDP_PORT=${UDP_PORT}
+      - DISPLAY=${HOST_IP}:0
+      # - "DISPLAY"    
+    volumes:
+      - ".:/ardupilot:rw"
+      - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
+      - "/etc/group:/etc/group:ro"
+      - "/etc/shadow:/etc/shadow:ro"
+      - "./entrypoint_sitl.sh:/entrypoint_sitl.sh"
+      - "${PARAM_DIR}:${PARAM_DIR}:rw"
+    command: bash /entrypoint_sitl.sh ${PARAM_DIR}/${PARAM_FILE}
